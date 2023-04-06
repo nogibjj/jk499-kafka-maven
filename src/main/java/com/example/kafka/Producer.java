@@ -1,14 +1,15 @@
 package com.example.kafka;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.*;
 
 import java.util.Properties;
 
 public class Producer {
     public static void main(String[] args){
+
+        final Logger logger = LoggerFactory.getLogger(Producer.class);
 
         //Create properties object for Producer
         Properties prop = new Properties();
@@ -23,7 +24,18 @@ public class Producer {
         ProducerRecord<String, String> record = new ProducerRecord<>("test","key2","value2");
 
         //Send Data - Asynchronous
-        producer.send(record);
+        producer.send(record, new Callback() {
+            @Override
+            public void onCompletion(RecordMetadata recordMetadata, Exception e) {
+                if(e == null){
+                    logger.info("\nReceived Record Metadata\n" + "Topic: "
+                            + recordMetadata.topic() + ", Offset: " + recordMetadata.offset()
+                    + ", Timestamp: " + recordMetadata.timestamp() + "\n");
+                }else{
+                    logger.error("Error occured while sending record", e);
+                }
+            }
+        });
 
         //flush and close Producer
         producer.flush();
