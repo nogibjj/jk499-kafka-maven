@@ -20,22 +20,25 @@ public class Producer {
         //Create the Producer
         final KafkaProducer<String, String> producer = new KafkaProducer<String, String>(prop);
 
-        //Create the ProducerRecord
-        ProducerRecord<String, String> record = new ProducerRecord<>("test","key2","value2");
+        for(int i = 1;  i < 10; i++) {
+            //Create the ProducerRecord
+            ProducerRecord<String, String> record = new ProducerRecord<>("java-topic","key_" + i,"value_" + i);
 
-        //Send Data - Asynchronous
-        producer.send(record, new Callback() {
-            @Override
-            public void onCompletion(RecordMetadata recordMetadata, Exception e) {
-                if(e == null){
-                    logger.info("\nReceived Record Metadata\n" + "Topic: "
-                            + recordMetadata.topic() + ", Offset: " + recordMetadata.offset()
-                    + ", Timestamp: " + recordMetadata.timestamp() + "\n");
-                }else{
-                    logger.error("Error occured while sending record", e);
+            //Send Data - Asynchronous
+            producer.send(record, new Callback() {
+                @Override
+                public void onCompletion(RecordMetadata recordMetadata, Exception e) {
+                    if(e == null){
+                        logger.info("\nReceived Record Metadata\n" + "Topic: "
+                                + recordMetadata.topic() + ", Partition: " + recordMetadata.partition() +
+                                ", Offset: " + recordMetadata.offset()
+                                + ", @ Timestamp: " + recordMetadata.timestamp() + "\n");
+                    }else{
+                        logger.error("Error occured while sending record", e);
+                    }
                 }
-            }
-        });
+            });
+        }
 
         //flush and close Producer
         producer.flush();
